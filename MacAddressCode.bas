@@ -1,12 +1,13 @@
 Attribute VB_Name = "MacAddressCode"
 Option Explicit
 
-' MAC address handling and generation methods v1.0.1
+' MAC address handling and generation methods v1.1.2
 ' (c) Gustav Brock, Cactus Data ApS, CPH
 ' https://github.com/GustavBrock/VBA.MacAddress
 '
 ' Set of functions to retrieve, create, parse, verify, and format
 ' MAC addresses and their main properties.
+' Also, generate BSSIDs derived from a MAC address and list these.
 '
 ' Limitation: Only IPv4 is handled. Any IPv6 information is ignored or unhandled.
 '
@@ -39,8 +40,8 @@ Option Explicit
     Const TotalLength1  As Integer = DigitCount + FrameCount1 - 1
     Const TotalLength3  As Integer = DigitCount + FrameCount3 - 1
     Const TotalLength6  As Integer = DigitCount + FrameCount6 - 1
-    ' HexPattern of one hex digit.
-    Const HexPattern    As String = "[0-9,A-F]"
+    ' HexPattern of one hex digit ignoring case.
+    Const HexPattern    As String = "[0-9,A-Fa-f]"
 '
 
 ' Enums.
@@ -768,7 +769,7 @@ End Function
 ' Requires:
 '   Module: Internet
 '
-' 2019-09-21, Cactus Data ApS, Gustav Brock
+' 2019-10-02, Cactus Data ApS, Gustav Brock
 '
 Public Function GetMacAddressVendor( _
     ByRef Octets() As Byte, _
@@ -786,6 +787,10 @@ Public Function GetMacAddressVendor( _
     Dim Line                As String
     Dim Vendor              As String
         
+    If Dir(Path, vbNormal) = "" Then
+        ' Caching of the downloaded file has timed out.
+        Path = ""
+    End If
     If Path = "" Then
         ' Download and cache file with list of vendors.
         Path = DownloadCacheFile(Url)
@@ -811,6 +816,91 @@ Public Function GetMacAddressVendor( _
     Set FileSystemObject = Nothing
 
     GetMacAddressVendor = Vendor
+
+End Function
+
+' Returns one BSSID of the possible 32 BSSIDs derived from the passed MAC address.
+' By default, the first BSSID is returned.
+' Optionally, the Id argument (0 to 31) specifies which of the possible BSSIDs to be returned.
+'
+' Examples:
+'   ' Octets() holds the MAC address d8:C7:C8:cc:43:24
+'   FormatMacAddress(BssidMacAddress(Octets()), ipMacColon)     -> D8:C7:C8:44:32:40
+'   FormatMacAddress(BssidMacAddress(Octets()) 12, ipMacColon)  -> D8:C7:C8:44:32:4C
+'
+' 2019-10-02, Cactus Data ApS, Gustav Brock
+'
+Public Function BssidMacAddress( _
+    ByRef Octets() As Byte, _
+    Optional Id As Byte) _
+    As Byte()
+
+    ' Maximum count of SSIDs.
+    Const MaxSsid   As Integer = &H20
+    
+    Dim Bssid(0 To OctetCount - 1)  As Byte
+    
+    Dim Index       As Integer
+    
+    For Index = LBound(Octets) To UBound(Octets)
+        Select Case Index
+            Case 0 To 2
+                ' Copy OUI.
+                Bssid(Index) = Octets(Index)
+            Case 3
+                Bssid(Index) = (Octets(Index) And &HF) * &H10 Xor &H80 + Octets(Index + 1) / &H10
+            Case 4
+                Bssid(Index) = (Octets(Index) And &HF) * &H10 + Octets(Index + 1) / &H10
+            Case 5
+                Bssid(Index) = (Octets(Index) And &HF) * &H10 + (Id Mod MaxSsid)
+        End Select
+    Next
+    
+    BssidMacAddress = Bssid()
+
+End Function
+
+' Returns the possible 32 BSSIDs derived from the passed MAC address as an array of octets.
+' By default, only the first BSSID is returned.
+' Optionally, any other range of the possible BSSID can be returned:
+'   Argument IdBase specifies the first BSSID to be returned.
+'   Argument IdCount specifies the count of BSSIDs to be returned.
+'
+' Examples:
+'   ' Octets() holds the MAC address d8:C7:C8:cc:43:24
+'
+'   Bssids() = BssidsMacAddress(Octets())
+'   Bssids(0)   ->  D8:C7:C8:44:32:40
+'
+'   Bssids() = BssidsMacAddress(Octets(), 4, 3)
+'   Bssids(0)   ->  D8:C7:C8:44:32:44
+'   Bssids(1)   ->  D8:C7:C8:44:32:45
+'   Bssids(2)   ->  D8:C7:C8:44:32:46
+'
+' 2019-10-02, Cactus Data ApS, Gustav Brock
+'
+Public Function BssidsMacAddress( _
+    ByRef Octets() As Byte, _
+    Optional ByVal IdBase As Byte, _
+    Optional ByVal IdCount As Byte) _
+    As Variant()
+
+    Dim Bssids()    As Variant
+    
+    Dim Index       As Byte
+    
+    If IdCount = 0 Then
+        ' Return minimum one BSSID.
+        IdCount = 1
+    End If
+    
+    ReDim Bssids(IdBase To IdBase + IdCount - 1)
+    
+    For Index = LBound(Bssids) To UBound(Bssids)
+        Bssids(Index) = BssidMacAddress(Octets(), Index)
+    Next
+    
+    BssidsMacAddress = Bssids()
 
 End Function
 

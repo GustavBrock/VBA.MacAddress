@@ -40,7 +40,6 @@ Public Sub ListLocalMacAddressesInfo()
     Const IpAddressWidth    As Long = 17
 
     Dim MacAddresses()      As Variant
-    Dim MacAddress          As Variant
     Dim Index               As Long
     Dim NicInformation      As IpNicInformation
     Dim Octets()            As Byte
@@ -85,7 +84,6 @@ End Sub
 Public Sub ListLocalMacAddressesVendor()
 
     Dim MacAddresses()      As Variant
-    Dim MacAddress          As Variant
     Dim Index               As Long
     Dim Vendor              As String
     Dim Octets()            As Byte
@@ -101,6 +99,90 @@ Public Sub ListLocalMacAddressesVendor()
         Debug.Print FormatMacAddress(Octets()), ;
         Vendor = GetMacAddressVendor(Octets())
         Debug.Print Vendor
+    Next
+
+End Sub
+
+' Lists the derived BSSID based on a MAC address.
+' By default, the first BSSID is listed.
+' Optionally, any of the other BSSIDs can be listed.
+'
+' Examples:
+'   ' Octets() holds the MAC address d8:C7:C8:cc:43:24
+'
+'   ListBssid Octets()      ->
+'       NIC           d8:c7:c8:cc:43:24
+'        0            d8:c7:c8:44:32:40
+'
+'   ListBssid Octets(), 7   ->
+'       NIC           d8:c7:c8:cc:43:24
+'        0            d8:c7:c8:44:32:47
+'
+' 2019-10-02, Cactus Data ApS, Gustav Brock
+'
+Public Sub ListBssid( _
+    ByRef Octets() As Byte, _
+    Optional Id As Byte)
+
+    Dim Bssid()     As Byte
+    
+    ' Retrieve BSSID.
+    Bssid() = BssidMacAddress(Octets(), Id)
+    
+    ' Print the base MAC address.
+    Debug.Print "NIC", FormatMacAddress(Octets(), ipMacColon, vbLowerCase)
+    ' Print the derived BSSID.
+    Debug.Print Id, FormatMacAddress(Bssid(), ipMacColon, vbLowerCase)
+
+End Sub
+
+' Lists derived BSSIDs based on a MAC address.
+' The range of BBSIDs is controlled by the constants.
+'
+' Example:
+'   ' Octets() holds the MAC address d8:C7:C8:cc:43:24
+'
+'   ListBssids Octets()     ->
+'   NIC           d8:c7:c8:cc:43:24
+'    0            d8:c7:c8:44:32:40
+'    1            d8:c7:c8:44:32:41
+'    2            d8:c7:c8:44:32:42
+'    3            d8:c7:c8:44:32:43
+'    4            d8:c7:c8:44:32:44
+'    5            d8:c7:c8:44:32:45
+'    6            d8:c7:c8:44:32:46
+'    7            d8:c7:c8:44:32:47
+'    8            d8:c7:c8:44:32:48
+'    9            d8:c7:c8:44:32:49
+'    10           d8:c7:c8:44:32:4a
+'    11           d8:c7:c8:44:32:4b
+'    12           d8:c7:c8:44:32:4c
+'    13           d8:c7:c8:44:32:4d
+'    14           d8:c7:c8:44:32:4e
+'    15           d8:c7:c8:44:32:4f
+'    16           d8:c7:c8:44:32:50
+'    17           d8:c7:c8:44:32:51
+'
+' 2019-10-02, Cactus Data ApS, Gustav Brock
+'
+Public Sub ListBssids(ByRef Octets() As Byte)
+
+    Const IdBase    As Byte = 0
+    Const IdCount   As Byte = 18
+    
+    Dim Bssids()    As Variant
+    Dim Bssid()     As Byte
+    Dim Id          As Byte
+    
+    ' Retrieve array of BSSIDs.
+    Bssids() = BssidsMacAddress(Octets(), IdBase, IdCount)
+    
+    ' Print the base MAC address.
+    Debug.Print "NIC", FormatMacAddress(Octets(), ipMacColon, vbLowerCase)
+    ' List the derived BSSIDs.
+    For Id = LBound(Bssids) To UBound(Bssids)
+        Bssid() = Bssids(Id)
+        Debug.Print Id, FormatMacAddress(Bssid(), ipMacColon, vbLowerCase)
     Next
 
 End Sub
