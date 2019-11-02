@@ -1,7 +1,7 @@
 Attribute VB_Name = "MacAddressCode"
 Option Explicit
 
-' MAC address handling and generation methods v1.1.2
+' MAC address handling and generation methods v1.1.3
 ' (c) Gustav Brock, Cactus Data ApS, CPH
 ' https://github.com/GustavBrock/VBA.MacAddress
 '
@@ -94,10 +94,6 @@ Option Explicit
 '   2: Boolean. The NIC has been assigned a default IP gateway
 '   3: String. IP address (first if several)
 '   4: String. Description of the NIC.
-
-' Returns the MAC address of the first network adapter having a gateway.
-' If no adapter has a gateway, the MAC address of the first adapter is returned.
-' If no IP enabled network adapter is found, a neutral MAC address is returned.
 '
 ' Reference:
 '   https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-networkadapterconfiguration
@@ -197,7 +193,7 @@ Public Function MacAddressLocal() As Byte()
         End If
     Next
     
-    If Not IsMacAddress(Octets()) Then ' CBool(Len(CStr(Octets()))) Then
+    If Not IsMacAddress(Octets()) Then
         ' No IP enabled NIC was found.
         ' Return neutral MAC address.
         ReDim Octets(0 To OctetCount - 1)
@@ -768,6 +764,7 @@ End Function
 '
 ' Requires:
 '   Module: Internet
+'   Reference: Microsoft Scripting Runtime
 '
 ' 2019-10-02, Cactus Data ApS, Gustav Brock
 '
