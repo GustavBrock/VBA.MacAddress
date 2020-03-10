@@ -34,7 +34,7 @@ Code has been tested with both 32-bit and 64-bit *Microsoft Access 2019* and *36
 ### Documentation ###
 Full documentation can be found here:
 
-![EE Logo](https://raw.githubusercontent.com/GustavBrock/VBA.Quartiles/master/images/EE%20Logo.png) 
+![EE Logo](https://raw.githubusercontent.com/GustavBrock/VBA.MacAddress/master/images/EE%20Logo.png) 
 
 [MAC addresses in Access and Excel](https://www.experts-exchange.com/articles/33827/MAC-addresses-in-Access-and-Excel.html)
 
