@@ -36,7 +36,7 @@ Full documentation can be found here:
 
 ![EE Logo](https://raw.githubusercontent.com/GustavBrock/VBA.MacAddress/master/images/EE%20Logo.png) 
 
-[MAC addresses in Access and Excel](https://www.experts-exchange.com/articles/33827/MAC-addresses-in-Access-and-Excel.html)
+[MAC addresses in Access and Excel](https://www.experts-exchange.com/articles/33827/MAC-addresses-in-Access-and-Excel.html?preview=hKzA%2BRnLzj4%3D)
 
 Included is a Microsoft Access example application and Microsoft Excel example workbook.
 
